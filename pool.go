@@ -5,6 +5,7 @@ import (
 	"runtime"
 )
 
+// WorkerPool provides various parallelism utilities via on a pool of goroutines.
 type WorkerPool struct {
 	acquireWorker chan interface{}
 	jobChan       chan func()
@@ -12,11 +13,12 @@ type WorkerPool struct {
 	count         int
 }
 
+// New returns a WorkerPool with maxWorker goroutines. Cancelation facilitated via the context.
 func New(ctx context.Context, maxWorkers int) *WorkerPool {
 	count := runtime.NumCPU() * 10
-  if maxWorkers > 0 {
-    count = maxWorkers
-  }
+	if maxWorkers > 0 {
+		count = maxWorkers
+	}
 	pw := &WorkerPool{
 		ctx:           ctx,
 		jobChan:       make(chan func(), 0),
@@ -31,6 +33,7 @@ func New(ctx context.Context, maxWorkers int) *WorkerPool {
 	return pw
 }
 
+// Push enqueues a function to be run on a worker goroutine.
 func (wp *WorkerPool) Push(fn func()) error {
 	_, ok := <-wp.acquireWorker
 	if ok == false {
